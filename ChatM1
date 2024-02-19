@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chatroom</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f0f0;
+        margin: 0;
+        padding: 0;
+    }
+    #chat-container {
+        width: 80%;
+        margin: 20px auto;
+        border: 1px solid #ccc;
+        padding: 10px;
+        height: 400px;
+        overflow-y: scroll;
+        background-color: #fff;
+    }
+    #message-container {
+        list-style-type: none;
+        padding: 0;
+    }
+    #message-container li {
+        margin-bottom: 5px;
+    }
+    #message-container li span {
+        font-weight: bold;
+    }
+    #input-container {
+        width: 80%;
+        margin: 20px auto;
+        background-color: #fff;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    #input-container input[type="text"] {
+        width: calc(100% - 70px);
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        margin-right: 5px;
+    }
+    #input-container button {
+        padding: 8px 15px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+    }
+    #input-container button:hover {
+        background-color: #0056b3;
+    }
+</style>
+</head>
+<body>
+<div id="chat-container">
+    <ul id="message-container"></ul>
+</div>
+<div id="input-container">
+    <input type="text" id="username" placeholder="Enter your username">
+    <input type="text" id="message" placeholder="Enter your message">
+    <button onclick="sendMessage()">Send</button>
+</div>
+
+<script>
+    // WebSocket connection
+    const socket = new WebSocket('ws://localhost:3000');
+
+    // Handle incoming messages
+    socket.addEventListener('message', function (event) {
+        var messageContainer = document.getElementById('message-container');
+        var newMessage = document.createElement('li');
+        newMessage.innerHTML = event.data;
+        messageContainer.appendChild(newMessage);
+        // Scroll to bottom of chat container
+        var chatContainer = document.getElementById('chat-container');
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+
+        // Notify user of new message if chatroom is not in focus
+        if (!document.hasFocus()) {
+            // Implement notification logic here
+            // For example:
+            // showNotification('New Message', event.data);
+        }
+    });
+
+    function sendMessage() {
+        var usernameInput = document.getElementById('username');
+        var messageInput = document.getElementById('message');
+
+        var username = usernameInput.value.trim();
+        var message = messageInput.value.trim();
+
+        if (username === '' || message === '') {
+            alert('Please enter a username and message.');
+            return;
+        }
+
+        var currentTime = new Date();
+        var timestamp = currentTime.toLocaleTimeString();
+        var datestamp = currentTime.toLocaleDateString();
+
+        var fullMessage = '<span>' + username + '</span>: ' + message + ' - ' + timestamp + ' on ' + datestamp;
+
+        // Send message to WebSocket server
+        socket.send(fullMessage);
+
+        // Clear input field
+        messageInput.value = '';
+    }
+</script>
+</body>
+</html>
